@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F
 from einops import rearrange, repeat
 from torch import nn
+from xformers.ops import memory_efficient_attention
 
 
 class RelativePosEmb(nn.Module):
@@ -95,16 +96,20 @@ class Attention(nn.Module):
         B, L, C = x.size()
         H = W = int(L**0.5)
         q, k, v = rearrange(
-            self.qkv(x), "b l (qkv h d) -> qkv b h l d", h=self.num_heads, qkv=3
+            self.qkv(x), "b l (qkv h d) -> qkv b l h d", h=self.num_heads, qkv=3
         )
         attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B)
-        with torch.backends.cuda.sdp_kernel(
-            enable_flash=False, enable_math=True, enable_mem_efficient=True
-        ):
-            x = torch.nn.functional.scaled_dot_product_attention(
-                q, k, v, attn_bias, dropout_p=self.attn_dropout if self.training else 0
-            )
-        x = rearrange(x, "b h l d -> b l (h d)")
+
+        x = memory_efficient_attention(
+            q, k, v, attn_bias=attn_bias, p=self.attn_dropout if self.training else 0
+        )
+        # with torch.backends.cuda.sdp_kernel(
+        #     enable_flash=False, enable_math=True, enable_mem_efficient=True
+        # ):
+        #     x = torch.nn.functional.scaled_dot_product_attention(
+        #         q, k, v, attn_bias, dropout_p=self.attn_dropout if self.training else 0
+        #     )
+        x = rearrange(x, "b l h d -> b l (h d)")
         x = self.out_dropout(self.out(x))
         return x
 
@@ -139,20 +144,23 @@ class CrossAttention(nn.Module):
     ) -> torch.Tensor:
         q = rearrange(
             self.q(x),
-            "b l (h d) -> b h l d",
+            "b l (h d) -> b l h d",
             h=self.num_heads,
         )
 
         k, v = rearrange(
-            self.kv(context), "b l (qkv h d) -> qkv b h l d", h=self.num_heads, qkv=2
+            self.kv(context), "b l (qkv h d) -> qkv b l h d", h=self.num_heads, qkv=2
         )
-        with torch.backends.cuda.sdp_kernel(
-            enable_flash=False, enable_math=True, enable_mem_efficient=True
-        ):
-            x = torch.nn.functional.scaled_dot_product_attention(
-                q, k, v, dropout_p=self.attn_dropout if self.training else 0
-            )
-        x = rearrange(x, "b h l d -> b l (h d)")
+        x = memory_efficient_attention(
+            q, k, v, p=self.attn_dropout if self.training else 0
+        )
+        # with torch.backends.cuda.sdp_kernel(
+        #     enable_flash=False, enable_math=True, enable_mem_efficient=True
+        # ):
+        #     x = torch.nn.functional.scaled_dot_product_attention(
+        #         q, k, v, dropout_p=self.attn_dropout if self.training else 0
+        #     )
+        x = rearrange(x, "b l h d -> b l (h d)")
         x = self.out_dropout(self.out(x))
         return x
 
