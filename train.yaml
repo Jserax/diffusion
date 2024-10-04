@@ -95,7 +95,7 @@ trainer:
   min_epochs: 1
   max_epochs: 16
   accelerator: gpu
-  devices: 1
+  devices: 2
   precision: 16
   gradient_clip_algorithm: "norm"
   gradient_clip_val: 1.0
