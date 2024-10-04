@@ -84,7 +84,7 @@ class Attention(nn.Module):
         self.out_dropout = nn.Dropout(out_dropout)
         self.pos_emb = RelativePosEmb(
             relative_bias_slope=relative_bias_slope,
-            relative_bias_inter=16,
+            relative_bias_inter=relative_bias_inter,
             num_heads=num_heads,
         )
 
@@ -99,7 +99,7 @@ class Attention(nn.Module):
         )
         attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B)
         with torch.backends.cuda.sdp_kernel(
-            enable_flash=False, enable_math=True, enable_mem_efficient=False
+            enable_flash=False, enable_math=True, enable_mem_efficient=True
         ):
             x = torch.nn.functional.scaled_dot_product_attention(
                 q, k, v, attn_bias, dropout_p=self.attn_dropout if self.training else 0
@@ -147,7 +147,7 @@ class CrossAttention(nn.Module):
             self.kv(context), "b l (qkv h d) -> qkv b h l d", h=self.num_heads, qkv=2
         )
         with torch.backends.cuda.sdp_kernel(
-            enable_flash=False, enable_math=True, enable_mem_efficient=False
+            enable_flash=False, enable_math=True, enable_mem_efficient=True
         ):
             x = torch.nn.functional.scaled_dot_product_attention(
                 q, k, v, dropout_p=self.attn_dropout if self.training else 0
