@@ -44,7 +44,7 @@ class DiffusionModel(pl.LightningModule):
         images, tokens, attn_mask = batch
         noise = torch.randn_like(images, device=images.device)
         timestep = torch.randint(0, 1000, size=images.size(), device=images.device)
-        input = self.sampler.add_noise(images, noise, timestep)
+        input = self.sampler.add_noise(images, noise, timestep).to(images)
         with torch.no_grad():
             context = self.text_model(tokens, attn_mask).last_hidden_state
         pred_noise = self.diffusion_model(input, context, timestep)
