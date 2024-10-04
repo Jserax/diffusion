@@ -95,6 +95,7 @@ trainer:
   max_epochs: 16
   accelerator: gpu
   devices: 2
+  strategy: ddp_find_unused_parameters_true
   precision: 16
   gradient_clip_algorithm: "norm"
   gradient_clip_val: 1.0
