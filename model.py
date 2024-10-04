@@ -516,10 +516,9 @@ class DiffusionModel(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        timestep: torch.Tensor,
         context: torch.Tensor,
+        timestep: torch.Tensor,
     ) -> torch.Tensor:
-        print(timestep)
         time = self.time_emb(timestep)
         x = self.input(x)
         down_out = []
