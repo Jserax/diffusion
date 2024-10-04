@@ -3,7 +3,7 @@ from typing import Tuple
 
 import torch
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import rearrange
 from torch import nn
 from xformers.ops import memory_efficient_attention
 
@@ -69,8 +69,6 @@ class Attention(nn.Module):
         attn_dropout: float = 0.2,
         out_dropout: float = 0.2,
         attn_bias: bool = False,
-        relative_bias_inter: int = 64,
-        relative_bias_slope: float = 8.0,
         *args,
         **kwargs,
     ) -> None:
@@ -83,32 +81,18 @@ class Attention(nn.Module):
         self.attn_dropout = attn_dropout
         self.out = nn.Linear(dim, dim, bias=attn_bias)
         self.out_dropout = nn.Dropout(out_dropout)
-        # self.pos_emb = RelativePosEmb(
-        #     relative_bias_slope=relative_bias_slope,
-        #     relative_bias_inter=relative_bias_inter,
-        #     num_heads=num_heads,
-        # )
 
     def forward(
         self,
         x: torch.Tensor,
     ) -> torch.Tensor:
         B, L, C = x.size()
-        H = W = int(L**0.5)
         q, k, v = rearrange(
             self.qkv(x), "b l (qkv h d) -> qkv b l h d", h=self.num_heads, qkv=3
         )
-        # attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B).contiguous()
-
         x = memory_efficient_attention(
             q, k, v, p=self.attn_dropout if self.training else 0
         )
-        # with torch.backends.cuda.sdp_kernel(
-        #     enable_flash=False, enable_math=True, enable_mem_efficient=True
-        # ):
-        #     x = torch.nn.functional.scaled_dot_product_attention(
-        #         q, k, v, attn_bias, dropout_p=self.attn_dropout if self.training else 0
-        #     )
         x = rearrange(x, "b l h d -> b l (h d)")
         x = self.out_dropout(self.out(x))
         return x
