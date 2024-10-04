@@ -1,0 +1,104 @@
+defaults:
+  - _self_
+
+model:
+  text_model_name: "huawei-noah/TinyBERT_General_4L_312D"
+  diffusion_model:
+    _target_: model.DiffusionModel
+  text_model:
+    _target_: transformers.AutoModel.from_pretrained
+    pretrained_model_name_or_path: ${model.text_model_name}
+  tokenizer:
+    _target_: transformers.AutoTokenizer.from_pretrained
+    pretrained_model_name_or_path: ${model.text_model_name}
+  sampler: 
+    _target_: samplers.EulerSampler
+    beta_start: 0.0001
+    beta_end: 0.02
+    num_train_timesteps: 1000
+    beta_schedule: "linear"
+    device: "cpu"
+  criterion:
+    _target_: torch.nn.MSELoss
+    reduction: mean
+  optimizer:
+    _target_: torch.optim.AdamW
+    _partial_: true
+    weight_decay: 0.03
+  lr_scheduler:
+    _target_: util.LRCosineScheduler
+    _partial_: true
+    warmup_steps: 31
+    cycle_steps: 124
+    cycle_mult: 5
+    max_lr: 0.0005
+    min_lr: 0.000005
+    gamma: 0.5
+  train_metrics:
+    _target_: torch.nn.ModuleDict
+    modules:
+      mse:
+        _target_: torchmetrics.MeanAbsoluteError
+      mae:
+        _target_: torchmetrics.MeanSquaredError
+        squared: false
+
+train_loader:
+  _target_: torch.utils.data.DataLoader
+  dataset:
+    _target_: data.DiffDataset
+    caption_path: "/kaggle/input/coco-64-diffusion/coco_64/coco.csv"
+    img_dir: "/kaggle/input/coco-64-diffusion/coco_64/"
+    tokenizer:
+      _target_: transformers.AutoTokenizer.from_pretrained
+      pretrained_model_name_or_path: ${model.text_model_name}
+    max_length: 64
+    transforms:
+      _target_: torchvision.transforms.Compose
+      transforms:
+        - _target_: torchvision.transforms.ToTensor
+        - _target_: torchvision.transforms.Normalize
+          mean: [0.5, 0.5, 0.5]
+          std: [0.5, 0.5, 0.5]
+  batch_size: 32
+  shuffle: True
+  num_workers: 2
+  pin_memory: True
+
+callbacks:
+  - _target_: lightning.pytorch.callbacks.ModelCheckpoint
+    dirpath: "."
+    filename: "epoch_{epoch:02d}-{train_loss:.3f}"
+    monitor: "train_loss"
+    mode: "min"
+    save_top_k: 1
+    auto_insert_metric_name: True
+    save_weights_only: False
+
+  - _target_: lightning.pytorch.callbacks.LearningRateMonitor
+    logging_interval: step
+
+  - _target_: lightning.pytorch.callbacks.TQDMProgressBar
+    leave: false
+    refresh_rate: 20
+
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: "."
+  project: "Diffusion Model"
+
+trainer:
+  _target_: lightning.pytorch.trainer.Trainer
+  min_epochs: 1
+  max_epochs: 16
+  accelerator: gpu
+  devices: 1
+  precision: 16
+  gradient_clip_algorithm: "norm"
+  gradient_clip_val: 1.0
+  log_every_n_steps: 1
+  enable_model_summary: False
+  deterministic: False
+  callbacks: ${callbacks}
+  logger: ${logger}
+
