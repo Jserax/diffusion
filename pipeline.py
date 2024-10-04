@@ -46,7 +46,7 @@ class DiffusionModel(pl.LightningModule):
         timestep = torch.randint(0, 1000, size=images.size(), device=images.device)
         input = self.sampler.add_noise(images, noise, timestep)
         with torch.no_grad():
-            context = self.text_model(tokens, attn_mask)
+            context = self.text_model(tokens, attn_mask).last_hidden_state
         pred_noise = self.diffusion_model(input, context, timestep)
         train_loss = self.criterion(pred_noise, noise)
         for metric_name, metric in self.train_metrics.items():
@@ -119,7 +119,7 @@ class DiffusionModel(pl.LightningModule):
             )
             tokens = tokenizer_output["input_ids"]
             attn_mask = tokenizer_output["attention_mask"]
-            context = self.text_model(tokens, attn_mask)
+            context = self.text_model(tokens, attn_mask).last_hidden_state
         for step, timestep in enumerate(self.sampler.inference_timesteps):
             model_input = torch.cat([sample] * 2) if cfg_scale is not None else sample
             model_input = self.sampler.scale_input(model_input, timestep)
