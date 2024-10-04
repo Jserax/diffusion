@@ -98,7 +98,7 @@ class Attention(nn.Module):
         q, k, v = rearrange(
             self.qkv(x), "b l (qkv h d) -> qkv b l h d", h=self.num_heads, qkv=3
         )
-        attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B)
+        attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B).contiguous()
 
         x = memory_efficient_attention(
             q, k, v, attn_bias=attn_bias, p=self.attn_dropout if self.training else 0
