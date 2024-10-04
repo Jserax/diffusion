@@ -183,8 +183,6 @@ class AttentionBlock(nn.Module):
         attn_bias: bool = False,
         attn_dropout: float = 0.0,
         attn_out_dropout: float = 0.0,
-        attn_rel_bias_dim: int = 64,
-        attn_rel_bias_slope: int = 8.0,
         *args,
         **kwargs,
     ) -> None:
@@ -196,8 +194,6 @@ class AttentionBlock(nn.Module):
             attn_dropout=attn_dropout,
             out_dropout=attn_out_dropout,
             attn_bias=attn_bias,
-            relative_bias_inter=attn_rel_bias_dim,
-            relative_bias_slope=attn_rel_bias_slope,
         )
 
         self.norm_2 = nn.LayerNorm(emb_dim)
@@ -450,8 +446,6 @@ class DiffusionModel(nn.Module):
                 attn_bias=attn_block_bias,
                 attn_dropout=attn_dropout,
                 attn_out_dropout=attn_dropout,
-                attn_rel_bias_dim=att_bias_dim,
-                attn_rel_bias_slope=attn_bias_slope,
             ),
         )
         self.upblocks = nn.ModuleList()
