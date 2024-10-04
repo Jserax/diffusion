@@ -1,17 +1,18 @@
 defaults:
   - _self_
 
+
+text_model_name: "huawei-noah/TinyBERT_General_4L_312D"
 model:
   _target_: pipeline.DiffusionModel
-  text_model_name: "huawei-noah/TinyBERT_General_4L_312D"
   diffusion_model:
     _target_: model.DiffusionModel
   text_model:
     _target_: transformers.AutoModel.from_pretrained
-    pretrained_model_name_or_path: ${model.text_model_name}
+    pretrained_model_name_or_path: ${text_model_name}
   tokenizer:
     _target_: transformers.AutoTokenizer.from_pretrained
-    pretrained_model_name_or_path: ${model.text_model_name}
+    pretrained_model_name_or_path: ${text_model_name}
   sampler: 
     _target_: samplers.EulerSampler
     beta_start: 0.0001
@@ -52,7 +53,7 @@ train_loader:
     img_dir: "/kaggle/input/coco-64-diffusion/coco_64/"
     tokenizer:
       _target_: transformers.AutoTokenizer.from_pretrained
-      pretrained_model_name_or_path: ${model.text_model_name}
+      pretrained_model_name_or_path: ${text_model_name}
     max_length: 64
     transforms:
       _target_: torchvision.transforms.Compose
