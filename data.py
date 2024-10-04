@@ -20,7 +20,7 @@ class DiffDataset(torch.utils.data.Dataset):
         data = pd.read_csv(caption_path)
         tokenizer = tokenizer
         data = tokenizer.batch_encode_plus(
-            data.comment.tolist(),
+            data.caption.tolist(),
             add_special_tokens=True,
             max_length=max_length,
             truncation=True,
