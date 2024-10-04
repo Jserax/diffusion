@@ -328,7 +328,6 @@ class ResidualBlock(nn.Module):
         time_scale, time_bias = (
             self.time_emb(time).unsqueeze(-1).unsqueeze(-1).chunk(2, dim=1)
         )
-        print(time_scale.shape, time_bias.shape, x.shape)
         x = time_scale * x + time_bias
         x = self.conv2(x)
         x = self.norm2(x)
@@ -521,7 +520,6 @@ class DiffusionModel(nn.Module):
         timestep: torch.Tensor,
     ) -> torch.Tensor:
         time = self.time_emb(timestep)
-        print(x.dtype, context.dtype, timestep.dtype, self.input.weight.data.dtype)
         x = self.input(x)
         down_out = []
         for i, block in enumerate(self.downblocks):
