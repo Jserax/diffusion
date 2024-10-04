@@ -18,7 +18,9 @@ class DiffDataset(torch.utils.data.Dataset):
     ) -> None:
         super().__init__()
         data = pd.read_csv(caption_path)
-        tokenizer = tokenizer
+        self.images = (
+            img_dir + "/" + data.image_id.astype("str").str.zfill(12) + ".jpg"
+        ).tolist()
         data = tokenizer.batch_encode_plus(
             data.caption.tolist(),
             add_special_tokens=True,
@@ -30,9 +32,6 @@ class DiffDataset(torch.utils.data.Dataset):
         )
         self.tokens = data["input_ids"]
         self.attn_mask = data["attention_mask"]
-        self.images = (
-            img_dir + "/" + data.image_id.astype("str").str.zfill(12) + ".jpg"
-        ).tolist()
 
         self.transforms = transforms
 
