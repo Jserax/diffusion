@@ -404,8 +404,6 @@ class DiffusionModel(nn.Module):
                         attn_bias=attn_block_bias,
                         attn_dropout=attn_dropout,
                         attn_out_dropout=attn_dropout,
-                        attn_rel_bias_dim=att_bias_dim,
-                        attn_rel_bias_slope=attn_bias_slope,
                     ),
                 )
             )
@@ -489,8 +487,6 @@ class DiffusionModel(nn.Module):
                         attn_bias=attn_block_bias,
                         attn_dropout=attn_dropout,
                         attn_out_dropout=attn_dropout,
-                        attn_rel_bias_dim=att_bias_dim,
-                        attn_rel_bias_slope=attn_bias_slope,
                     ),
                 ),
             )
