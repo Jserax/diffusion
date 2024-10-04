@@ -33,7 +33,7 @@ class DiffusionModel(pl.LightningModule):
         self.scheduler = scheduler
         self.train_metrics = train_metrics
         self.save_hyperparameters(
-            ignor=["diffusion_model", "text_model", "criterion", "train_metrics"]
+            ignore=["diffusion_model", "text_model", "criterion", "train_metrics"]
         )
 
     def training_step(
