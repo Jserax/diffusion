@@ -74,6 +74,7 @@ callbacks:
     monitor: "train_loss"
     mode: "min"
     save_top_k: 1
+    every_n_epochs: 2000
     auto_insert_metric_name: True
     save_weights_only: False
 

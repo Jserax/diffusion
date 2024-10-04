@@ -82,11 +82,11 @@ class Attention(nn.Module):
         self.attn_dropout = attn_dropout
         self.out = nn.Linear(dim, dim, bias=attn_bias)
         self.out_dropout = nn.Dropout(out_dropout)
-        self.pos_emb = RelativePosEmb(
-            relative_bias_slope=relative_bias_slope,
-            relative_bias_inter=relative_bias_inter,
-            num_heads=num_heads,
-        )
+        # self.pos_emb = RelativePosEmb(
+        #     relative_bias_slope=relative_bias_slope,
+        #     relative_bias_inter=relative_bias_inter,
+        #     num_heads=num_heads,
+        # )
 
     def forward(
         self,
@@ -97,12 +97,12 @@ class Attention(nn.Module):
         q, k, v = rearrange(
             self.qkv(x), "b l (qkv h d) -> qkv b h l d", h=self.num_heads, qkv=3
         )
-        attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B)
+        # attn_bias = repeat(self.pos_emb((H, W)), "1 h i j -> k h i j", k=B)
         with torch.backends.cuda.sdp_kernel(
             enable_flash=False, enable_math=True, enable_mem_efficient=False
         ):
             x = torch.nn.functional.scaled_dot_product_attention(
-                q, k, v, attn_bias, self.attn_dropout if self.training else 0
+                q, k, v, dropout_p=self.attn_dropout if self.training else 0
             )
         x = rearrange(x, "b h l d -> b l (h d)")
         x = self.out_dropout(self.out(x))
@@ -407,18 +407,18 @@ class DiffusionModel(nn.Module):
                         bias=resblock_bias,
                         dropout=resblock_dropout,
                     ),
-                    # AttentionBlock(
-                    #     heads=attn_heads,
-                    #     emb_dim=dim,
-                    #     cross_dim=context_dim,
-                    #     mlp_hid_dim=int(attn_hid_dim_mult * dim),
-                    #     mlp_bias=attn_block_bias,
-                    #     attn_bias=attn_block_bias,
-                    #     attn_dropout=attn_dropout,
-                    #     attn_out_dropout=attn_dropout,
-                    #     attn_rel_bias_dim=att_bias_dim,
-                    #     attn_rel_bias_slope=attn_bias_slope,
-                    # ),
+                    AttentionBlock(
+                        heads=attn_heads,
+                        emb_dim=dim,
+                        cross_dim=context_dim,
+                        mlp_hid_dim=int(attn_hid_dim_mult * dim),
+                        mlp_bias=attn_block_bias,
+                        attn_bias=attn_block_bias,
+                        attn_dropout=attn_dropout,
+                        attn_out_dropout=attn_dropout,
+                        attn_rel_bias_dim=att_bias_dim,
+                        attn_rel_bias_slope=attn_bias_slope,
+                    ),
                 )
             )
             self.downsample_blocks.append(
@@ -449,18 +449,18 @@ class DiffusionModel(nn.Module):
                 bias=resblock_bias,
                 dropout=resblock_dropout,
             ),
-            # AttentionBlock(
-            #     heads=attn_heads,
-            #     emb_dim=dim,
-            #     cross_dim=context_dim,
-            #     mlp_hid_dim=int(attn_hid_dim_mult * dim),
-            #     mlp_bias=attn_block_bias,
-            #     attn_bias=attn_block_bias,
-            #     attn_dropout=attn_dropout,
-            #     attn_out_dropout=attn_dropout,
-            #     attn_rel_bias_dim=att_bias_dim,
-            #     attn_rel_bias_slope=attn_bias_slope,
-            # ),
+            AttentionBlock(
+                heads=attn_heads,
+                emb_dim=dim,
+                cross_dim=context_dim,
+                mlp_hid_dim=int(attn_hid_dim_mult * dim),
+                mlp_bias=attn_block_bias,
+                attn_bias=attn_block_bias,
+                attn_dropout=attn_dropout,
+                attn_out_dropout=attn_dropout,
+                attn_rel_bias_dim=att_bias_dim,
+                attn_rel_bias_slope=attn_bias_slope,
+            ),
         )
         self.upblocks = nn.ModuleList()
         self.upsample_blocks = nn.ModuleList()
@@ -494,18 +494,18 @@ class DiffusionModel(nn.Module):
                         bias=resblock_bias,
                         dropout=resblock_dropout,
                     ),
-                    # AttentionBlock(
-                    #     heads=attn_heads,
-                    #     emb_dim=dim,
-                    #     cross_dim=context_dim,
-                    #     mlp_hid_dim=int(attn_hid_dim_mult * dim),
-                    #     mlp_bias=attn_block_bias,
-                    #     attn_bias=attn_block_bias,
-                    #     attn_dropout=attn_dropout,
-                    #     attn_out_dropout=attn_dropout,
-                    #     attn_rel_bias_dim=att_bias_dim,
-                    #     attn_rel_bias_slope=attn_bias_slope,
-                    # ),
+                    AttentionBlock(
+                        heads=attn_heads,
+                        emb_dim=dim,
+                        cross_dim=context_dim,
+                        mlp_hid_dim=int(attn_hid_dim_mult * dim),
+                        mlp_bias=attn_block_bias,
+                        attn_bias=attn_block_bias,
+                        attn_dropout=attn_dropout,
+                        attn_out_dropout=attn_dropout,
+                        attn_rel_bias_dim=att_bias_dim,
+                        attn_rel_bias_slope=attn_bias_slope,
+                    ),
                 ),
             )
         self.out = nn.Conv2d(dim, 3, kernel_size=3, padding=1)
