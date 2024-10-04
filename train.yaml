@@ -27,7 +27,7 @@ model:
     _target_: torch.optim.AdamW
     _partial_: true
     weight_decay: 0.03
-  lr_scheduler:
+  scheduler:
     _target_: util.LRCosineScheduler
     _partial_: true
     warmup_steps: 31

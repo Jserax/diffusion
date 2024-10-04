@@ -18,7 +18,7 @@ class DiffusionModel(pl.LightningModule):
         sampler: EulerSampler,
         criterion: Union[torch.nn.Module, Callable],
         optimizer: torch.optim.Optimizer,
-        lr_scheduler: torch.optim.lr_scheduler,
+        scheduler: torch.optim.lr_scheduler,
         train_metrics: torch.nn.ModuleDict,
         *args,
         **kwargs,
@@ -30,9 +30,11 @@ class DiffusionModel(pl.LightningModule):
         self.sampler = sampler
         self.criterion = criterion
         self.optimizer = optimizer
-        self.lr_scheduler = lr_scheduler
+        self.scheduler = scheduler
         self.train_metrics = train_metrics
-        self.save_hyperparameters()
+        self.save_hyperparameters(
+            ignor=["diffusion_model", "text_model", "criterion", "train_metrics"]
+        )
 
     def training_step(
         self,
