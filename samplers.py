@@ -10,19 +10,13 @@ class EulerSampler:
         beta_end: float = 0.02,
         num_train_timesteps: int = 1000,
         beta_schedule: str = "linear",
-        device: str = "cpu",
     ) -> None:
         self.num_train_timesteps = num_train_timesteps
-        self.device = device
         if beta_schedule == "linear":
-            self.betas = torch.linspace(
-                beta_start, beta_end, num_train_timesteps, device=device
-            )
+            self.betas = torch.linspace(beta_start, beta_end, num_train_timesteps)
         elif beta_schedule == "scaled_linear":
             self.betas = (
-                torch.linspace(
-                    beta_start**0.5, beta_end**0.5, num_train_timesteps, device=device
-                )
+                torch.linspace(beta_start**0.5, beta_end**0.5, num_train_timesteps)
             ) ** 2
         self.alphas = 1 - self.betas
         self.alphas_cumprod = torch.cumprod(self.alphas, dim=0)
@@ -32,7 +26,6 @@ class EulerSampler:
             self.num_train_timesteps - 1,
             self.num_train_timesteps,
             dtype=torch.int32,
-            device=self.device,
         ).flip(0)
         self.initial_scale = self.train_sigmas.max()
 
@@ -49,7 +42,6 @@ class EulerSampler:
             self.num_train_timesteps - 1,
             num_inference_steps,
             dtype=torch.int32,
-            device=self.device,
         ).flip(0)
 
         self.inference_sigmas = torch.cat(
@@ -82,12 +74,7 @@ class EulerSampler:
         timestep: torch.Tensor,
         scale_input: bool = True,
     ) -> torch.FloatTensor:
-        if not sample.device == self.device:
-            sample = sample.to(self.device)
-        if not noise.device == self.device:
-            noise = noise.to(self.device)
-        if not timestep.device == self.device:
-            timestep = timestep.to(self.device)
+        self.train_sigmas = self.train_sigmas.to(sample.device)
         sigmas = self.train_sigmas[timestep]
         while len(sigmas.shape) < len(sample.shape):
             sigmas = sigmas.unsqueeze(-1)
