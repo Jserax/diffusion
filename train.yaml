@@ -2,6 +2,7 @@ defaults:
   - _self_
 
 model:
+  _target_: pipeline.DiffusionModel
   text_model_name: "huawei-noah/TinyBERT_General_4L_312D"
   diffusion_model:
     _target_: model.DiffusionModel
