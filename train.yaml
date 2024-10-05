@@ -32,8 +32,8 @@ model:
     warmup_steps: 1078
     cycle_steps: 6471
     cycle_mult: 1
-    max_lr: 0.005
-    min_lr: 0.000005
+    max_lr: 0.003
+    min_lr: 0.000003
     gamma: 1.0
   train_metrics:
     _target_: torch.nn.ModuleDict
