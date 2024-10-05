@@ -73,7 +73,7 @@ callbacks:
     monitor: "train_loss"
     mode: "min"
     save_top_k: 1
-    every_n_epochs: 2000
+    every_n_epochs: 200
     auto_insert_metric_name: True
     save_weights_only: False
 
@@ -92,7 +92,7 @@ logger:
 trainer:
   _target_: lightning.pytorch.trainer.Trainer
   min_epochs: 1
-  max_epochs: 16
+  max_epochs: 3
   accelerator: gpu
   devices: 2
   strategy: ddp_find_unused_parameters_true
