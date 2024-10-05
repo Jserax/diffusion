@@ -29,12 +29,12 @@ model:
   scheduler:
     _target_: util.LRCosineScheduler
     _partial_: true
-    warmup_steps: 31
-    cycle_steps: 124
-    cycle_mult: 5
-    max_lr: 0.0005
+    warmup_steps: 1078
+    cycle_steps: 6471
+    cycle_mult: 1
+    max_lr: 0.005
     min_lr: 0.000005
-    gamma: 0.5
+    gamma: 1.0
   train_metrics:
     _target_: torch.nn.ModuleDict
     modules:
