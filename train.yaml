@@ -33,7 +33,7 @@ model:
     cycle_steps: 6471
     cycle_mult: 1
     max_lr: 0.003
-    min_lr: 0.000003
+    min_lr: 0.000002
     gamma: 1.0
   train_metrics:
     _target_: torch.nn.ModuleDict
